@@ -1,0 +1,690 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>LetterFight</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    
+
+
+
+<script type="text/javascript">
+
+
+    var config = {
+        type: Phaser.AUTO,
+        width: 1080,
+        height: 2340,
+        scene: {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    var game = new Phaser.Game(config);
+
+    var pointMap = new Map();
+
+    var wordPointList = [];
+
+/*     var letterArray = [
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    ]; */
+
+    var letterGroup;
+
+    //var currLetters = new Array(26).fill(false);
+
+    var letter;
+
+    var completeWord;
+
+    var currText = '';
+
+    var currLength = 0;
+    
+    var totScoreText;
+
+    var totScore = 0;
+
+    var allKeys;
+
+    var keysText;
+
+    var keyStart = 0;
+
+    var updateIndex = 1;
+
+    var wordToShow = [];
+
+    var completedWords = new Array(5).fill(false);
+
+    var timeEvent;
+
+    var timeText;
+
+    var timerText;
+
+    var timerEvents = [];
+
+    var timeGraphics;
+
+    var colors;
+
+    var nextKeyCounter = 0;
+
+    var comboText;
+
+    var comboNbr = 0;
+
+    var down;
+
+    var heldIndex;
+
+    function preload ()
+    {
+
+        this.load.image('A', 'Assets/Letters/letterA.png');
+        this.load.image('B', 'Assets/Letters/letterB.png');
+        this.load.image('C', 'Assets/Letters/letterC.png');
+        this.load.image('D', 'Assets/Letters/letterD.png');
+        this.load.image('E', 'Assets/Letters/letterE.png');
+        this.load.image('F', 'Assets/Letters/letterF.png');
+        this.load.image('G', 'Assets/Letters/letterG.png');
+        this.load.image('H', 'Assets/Letters/letterH.png');
+        this.load.image('I', 'Assets/Letters/letterI.png');
+        this.load.image('J', 'Assets/Letters/letterJ.png');
+        this.load.image('K', 'Assets/Letters/letterK.png');
+        this.load.image('L', 'Assets/Letters/letterL.png');
+        this.load.image('M', 'Assets/Letters/letterM.png');
+        this.load.image('N', 'Assets/Letters/letterN.png');
+        this.load.image('O', 'Assets/Letters/letterO.png');
+        this.load.image('P', 'Assets/Letters/letterP.png');
+        this.load.image('Q', 'Assets/Letters/letterQ.png');
+        this.load.image('R', 'Assets/Letters/letterR.png');
+        this.load.image('S', 'Assets/Letters/letterS.png');
+        this.load.image('T', 'Assets/Letters/letterT.png');
+        this.load.image('U', 'Assets/Letters/letterU.png');
+        this.load.image('V', 'Assets/Letters/letterV.png');
+        this.load.image('W', 'Assets/Letters/letterW.png');
+        this.load.image('X', 'Assets/Letters/letterX.png');
+        this.load.image('Y', 'Assets/Letters/letterY.png');
+        this.load.image('Z', 'Assets/Letters/letterZ.png');
+
+        this.load.image('logo', 'Assets/LetterFightLogoRounded.png');
+        this.load.image('background', 'Assets/bakgrund_asperite_3.png');
+        this.load.image('completeword', 'Assets/completeWordButton.png');
+        this.load.text('wordPoint', 'Assets/wordsSorteratPoints_newlined_101_2.txt');
+    
+    }
+
+    function create ()
+    {
+     
+        this.add.image(540, 1170, 'background');
+
+        scoreLabel = this.add.text(65, 2100, '', { font: '56px Courier', color: '#000000'});
+        scoreLabel.setText('Score: ');
+
+        totScoreText = this.add.text(65, 2160, '', { font: '56px Courier', color: '#000000'});
+        totScoreText.setText('0');
+
+        this.add.text(850, 400, 'Combo:', { font: '56px Courier', color: '#000000'});
+        comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
+
+
+        completeWord = this.add.image(540, 1950, 'completeword');
+        completeWord.setInteractive();
+
+        letterGroup = this.add.group();
+        //letterGroup.inputEnableChildren = true;
+
+        currWordGroup = this.add.group();
+
+        randomizeLetters2.call(this);
+
+        createPointMap();
+
+        keysText = this.add.text(65, 190, '', { font: '56px Courier', color: '#000000'});
+        
+        updateKeys();
+
+        this.input.on('gameobjectup', function (pointer, letter) 
+        {
+
+            if (down) 
+            {
+                down = false;
+
+                switch(letter.texture.key)
+                {
+                    case 'completeword':
+                        currLength = 0;
+                        currWordGroup.clear(true,true);
+                        completeWord.setScale(1);
+
+                        var points = parseInt(pointMap.get(currText));
+
+                        console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
+
+                        switch (currText)
+                        {
+                            case wordToShow[0]:
+
+                                completedWords[0] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
+                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[0] = wordToShow[0] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+
+                            case wordToShow[1]:
+
+                                completedWords[1] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
+                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[1] = wordToShow[1] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[2]:
+
+                                completedWords[2] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
+                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[2] = wordToShow[2] + '\t\tCompleted! +' + points + 'p!';
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[3]:
+                                
+                                completedWords[3] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
+                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[3] = wordToShow[3] + '\t\tCompleted! +' + points + 'p!';
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[4]:
+
+                                completedWords[4] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
+                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[4] = wordToShow[4] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            default:
+                                console.log('kom till default case: ' + currText);
+                                console.log('bör vara annat ord än i ordlistan');
+
+                                comboNbr--;
+                                if (comboNbr < 0)
+                                {
+                                    comboNbr = 0;
+                                }
+                                comboText.setText(comboNbr);
+
+                        }
+                        if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
+                        {
+                            updateKeys();
+                            completedWords.fill(false);
+                        }
+
+                        currText = '';
+
+                        break;
+                    //case '':
+                        //bla
+                        break;
+                    default:
+                        console.log('kom till default case: ' + letter.texture.key);
+
+                        currWordGroup.create(120 + currLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();
+                
+                        currLength++;
+                        currText += letter.texture.key.toLowerCase();
+
+                }
+
+                //currLetters.fill(false);
+
+                letterGroup.clear(true,true);
+
+                randomizeLetters2.call(this);
+            }
+
+            //För att kunna byta ordning på bokstäver behöver bokstaven man släpper på vara i 
+            //"byggrutan" (currWordGroup.contains(letter))
+            if (currWordGroup.contains(letter)) 
+            {
+                console.log('släppte på annan bokstav ' + letter.texture.key);
+
+                var currIndex = Math.floor((pointer.x-60)/120);
+                
+                if (!(currIndex == heldIndex)) 
+                {
+                    comboNbr--;
+                                if (comboNbr < 0)
+                                {
+                                    comboNbr = 0;
+                                }
+                                comboText.setText(comboNbr);
+                }
+
+                console.log('släppte på bostav nr: ' + currIndex);
+                var currTextArray = new Array(currLength);
+
+                for (var i = 0; i < currLength; i++)
+                {
+                    currTextArray[i] = currText.charAt(i).toUpperCase();
+                }
+
+                console.log('heldIndex: ' + heldIndex + ', currIndex: ' + currIndex);
+ 
+
+                currWordGroup.clear(true,true);
+
+                var heldPut = false;
+
+                var newCurrText = '';
+
+                var diff = heldIndex - currIndex;
+                var oldDiff = diff;
+                var lastDone = false;
+
+                for (var i = 0; i < currLength; i++)
+                {
+                    if (i < heldIndex && i < currIndex)
+                    {
+                        currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
+                        newCurrText += currTextArray[i].toLowerCase();
+                        
+                        console.log('kom till i < heldIndex || i < currIndex');
+                    } 
+                    else
+                    {
+                        if (diff != 0)
+                        {
+                            if (diff < 0) 
+                            {
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i+1]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i+1].toLowerCase();
+                                diff++;
+
+                                console.log('kom till diff < 0');
+                            }
+                            else 
+                            {
+                                if (!lastDone)
+                                {
+                                    lastDone = true;
+                                    currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
+                                    newCurrText += currTextArray[i+oldDiff].toLowerCase();
+                                    console.log('kom till !lastdone i diff < 0');
+                                }
+                                else 
+                                {
+                                    currWordGroup.create(120 + i*120, 960, currTextArray[i-1]).setScale(0.5).setInteractive();
+                                    newCurrText += currTextArray[i-1].toLowerCase();
+                                    diff--;
+                                    console.log('kom till diff < 0');
+                                }
+                            }
+                        }
+                        else 
+                        {
+                            if (!lastDone) 
+                            {
+                                lastDone = true;
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i+oldDiff].toLowerCase();
+                                console.log('kom till !lastDone när diff = 0');
+                            }
+                            else
+                            {
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i].toLowerCase();
+                                console.log('kom till diff = 0');
+                            }
+                        }
+                    }
+                }
+
+                /* for (var i = 0; i < currLength; i++)
+                {
+                    if (i == currIndex)
+                    {
+                        currWordGroup.create(120 + i*120, 960, held).setScale(0.5).setInteractive();
+                        newCurrText += held.toLowerCase();
+                        heldPut = true;
+                    } 
+                    else
+                    {
+                        if (!heldPut)
+                        {
+                            currWordGroup.create(120 + i*120, 960, currText.charAt(i).toUpperCase()).setScale(0.5).setInteractive();
+                            newCurrText += currText.charAt(i).toLowerCase();
+                        }
+                        else 
+                        {
+                            //if ()
+
+                            currWordGroup.create(120 + i*120, 960, currText.charAt(i-1).toUpperCase()).setScale(0.5).setInteractive();
+                            newCurrText += currText.charAt(i-1).toLowerCase();
+                        }
+                    }
+                } */
+
+
+                currText = newCurrText;
+
+                held = '';
+
+            }
+
+        });
+        
+        this.input.on('gameobjectdown', function (pointer, letter) 
+        {
+            if (!currWordGroup.contains(letter))
+            {
+                letter.setScale(0.9);
+                down = true;
+            }
+            else
+            {
+                heldIndex = Math.floor((pointer.x-60)/120);
+                console.log('klickade på ord i ordbygget ' + letter.texture.key);
+                console.log('pointer x: ' + pointer.x);
+                console.log('bör vara bokstav nr: ' + Math.floor((pointer.x-60)/120));
+                console.log('pointer y: ' + pointer.y);
+            }
+        });
+
+        this.input.on('gameobjectout', function (pointer, letter) 
+        {
+            if (!currWordGroup.contains(letter))
+            {
+                letter.setScale(1);
+                down = false;
+            }
+        });
+
+        timerText = this.add.text(50, 85, 'Timer:', { font: '60px Courier', color: '#000000'});
+
+        //timeText = this.add.text(780, 140 , '', { font: '56px Courier', color: '#000000'});
+
+
+        timerEvents.push(this.time.addEvent({ delay: 30000}));
+        
+        timeGraphics = this.add.graphics({ x: 60, y: 140 });
+
+        colors = Phaser.Display.Color.HSVColorWheel();
+
+    }
+
+    function update ()
+    {
+
+        timeGraphics.clear();
+
+        var elapsedSeconds = Math.floor(30*(1-timerEvents[0].getProgress().toString().substr(0, 4)));
+
+        timerText.setText('Timer: ' + elapsedSeconds);
+
+        timeGraphics.fillStyle(colors[0].color, 1);
+        timeGraphics.fillRect(0, 0, 780*(1-timerEvents[0].getProgress()), 30);
+
+    }
+
+    
+/*     function randomizeLetters () //gammal funktion där bokstäverna var helt random
+    {
+
+        var x = 180;
+        var y = 1200;
+
+        for (var i = 0; i < 4; i++) 
+        {
+            for (var j = 0; j < 3; j++)
+            {
+                var rand;
+
+                do 
+                {
+                    rand = Phaser.Math.RND.between(0, 25);
+                } 
+                while (currLetters[rand] != false);
+
+                currLetters[rand] = true;
+                
+                letter = letterGroup.create(x + 240*i, y + 240*j, letterArray[rand]);//.setInteractive();
+                //sprite = this.add.image(x + 240*i, y + 240*j, letterArray[rand]);
+            }
+        }
+    } */
+
+    function randomizeLetters2 () //randomize depending on how common each letter is
+    {
+
+        var letterMap = new Map();
+
+        letterMap.set('Q', 1315);
+        letterMap.set('J', 1331);       
+        letterMap.set('X', 2013);       
+        letterMap.set('Z', 2896);       
+        letterMap.set('W', 5681);       
+        letterMap.set('K', 5909);       
+        letterMap.set('V', 7467);       
+        letterMap.set('F', 9384);       
+        letterMap.set('Y', 11665);      
+        letterMap.set('B', 13598);
+        letterMap.set('H', 15666);
+        letterMap.set('M', 19830);
+        letterMap.set('P', 19832);
+        letterMap.set('G', 20669);
+        letterMap.set('U', 24070);
+        letterMap.set('D', 27137);
+        letterMap.set('C', 28711);
+        letterMap.set('L', 37866);
+        letterMap.set('O', 43462);
+        letterMap.set('T', 48287);
+        letterMap.set('N', 50030);
+        letterMap.set('R', 51227);
+        letterMap.set('A', 55526);
+        letterMap.set('S', 61683);
+        letterMap.set('I', 63135);
+        letterMap.set('E', 81043);
+
+        var x = 180;
+        var y = 1200;
+
+        for (var i = 0; i < 4; i++) 
+        {
+            for (var j = 0; j < 3; j++)
+            {
+                var totVal = 0;
+                letterMap.forEach((value) => {totVal += value});
+                //console.log('totVal: ' + totVal);
+
+                var rand = Phaser.Math.RND.between(0, totVal);
+
+                var sumVal = 0;
+                for (const [key, value] of letterMap) 
+                {
+                    sumVal += value;
+                    if (sumVal > rand) 
+                    {
+                        letter = letterGroup.create(x + 240*i, y + 240*j, key).setInteractive();
+                        //console.log('bokstav: ' + key);
+                        letterMap.delete(key);
+
+                        break;
+                    }
+                }
+
+            }
+        }  
+    }
+
+    function createPointMap ()
+    {
+
+        wordPointList = game.cache.text.get('wordPoint');
+
+        for (var i = 0; i < wordPointList.length; i++) 
+        {
+            var key;
+            var val;
+
+            if (/[a-z]/.test(wordPointList[i]))
+            {
+                key += wordPointList[i];
+            } 
+            else if (/[0-9]/.test(wordPointList[i]))
+            {
+                val += wordPointList[i];
+            }
+            else if (/\n/.test(wordPointList[i]))
+            {
+                pointMap.set(key, val);
+                key = ''
+                val = ''
+            }
+        
+        }
+
+        allKeys = pointMap.keys();
+        allKeys.next();
+    }
+
+    function updateKeys ()
+    {
+
+        wordToShow = [];
+
+        var range = 20 + totScore/50;
+
+        for (var i = 0 ; i < 5; i++) 
+        {
+            var cnt = 0;
+            for (var j = 0; j < Phaser.Math.RND.between(1,range); j++ )
+            {   
+
+                var k = allKeys.next().value;
+                nextKeyCounter++;
+                cnt++;
+                console.log('cnt: ' + cnt + ' Bokstavsnummer: ' + i + ' ord: ' + k);
+                wordToShow[i] = k;
+            }
+
+            while (nextKeyCounter < range*updateIndex)
+            {
+                allKeys.next().value;
+                nextKeyCounter++;
+            }
+
+            updateIndex++;
+        }
+
+        keysText.setText(
+            wordToShow[0] + '\n' + wordToShow[1] + '\n' + wordToShow[2] + '\n' + wordToShow[3] + '\n' + wordToShow[4]
+        );
+
+    }
+
+
+</script>
+
+</body>
+</html>
