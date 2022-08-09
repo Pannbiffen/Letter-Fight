@@ -18,541 +18,57 @@
 
 <script type="text/javascript">
 
+var pointMap = new Map();
 
-    var config = {
-        type: Phaser.AUTO,
-        width: 1080,
-        height: 2340,
-        scene: {
-            preload: preload,
-            create: create,
-            update: update
-        }
-    };
+var wordPointList = [];
 
-    var game = new Phaser.Game(config);
+var letterGroup;
 
-    var pointMap = new Map();
+var letter;
 
-    var wordPointList = [];
+var completeWord;
 
-/*     var letterArray = [
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-    ]; */
+var currText = '';
 
-    var letterGroup;
+var currLength = 0;
 
-    //var currLetters = new Array(26).fill(false);
+var totScoreText;
 
-    var letter;
+var totScore = 0;
 
-    var completeWord;
+var allKeys;
 
-    var currText = '';
+var keysText;
 
-    var currLength = 0;
-    
-    var totScoreText;
+var keyStart = 0;
 
-    var totScore = 0;
+var updateIndex = 1;
 
-    var allKeys;
+var wordToShow = [];
 
-    var keysText;
+var completedWords = new Array(5).fill(false);
 
-    var keyStart = 0;
+var timeEvent;
 
-    var updateIndex = 1;
+var timeText;
 
-    var wordToShow = [];
+var timerText;
 
-    var completedWords = new Array(5).fill(false);
+var timerEvents;
 
-    var timeEvent;
+var timeGraphics;
 
-    var timeText;
+var colors;
 
-    var timerText;
+var nextKeyCounter = 0;
 
-    var timerEvents = [];
+var comboText;
 
-    var timeGraphics;
+var comboNbr = 0;
 
-    var colors;
+var down;
 
-    var nextKeyCounter = 0;
-
-    var comboText;
-
-    var comboNbr = 0;
-
-    var down;
-
-    var heldIndex;
-
-    function preload ()
-    {
-
-        this.load.image('A', 'Assets/Letters/letterA.png');
-        this.load.image('B', 'Assets/Letters/letterB.png');
-        this.load.image('C', 'Assets/Letters/letterC.png');
-        this.load.image('D', 'Assets/Letters/letterD.png');
-        this.load.image('E', 'Assets/Letters/letterE.png');
-        this.load.image('F', 'Assets/Letters/letterF.png');
-        this.load.image('G', 'Assets/Letters/letterG.png');
-        this.load.image('H', 'Assets/Letters/letterH.png');
-        this.load.image('I', 'Assets/Letters/letterI.png');
-        this.load.image('J', 'Assets/Letters/letterJ.png');
-        this.load.image('K', 'Assets/Letters/letterK.png');
-        this.load.image('L', 'Assets/Letters/letterL.png');
-        this.load.image('M', 'Assets/Letters/letterM.png');
-        this.load.image('N', 'Assets/Letters/letterN.png');
-        this.load.image('O', 'Assets/Letters/letterO.png');
-        this.load.image('P', 'Assets/Letters/letterP.png');
-        this.load.image('Q', 'Assets/Letters/letterQ.png');
-        this.load.image('R', 'Assets/Letters/letterR.png');
-        this.load.image('S', 'Assets/Letters/letterS.png');
-        this.load.image('T', 'Assets/Letters/letterT.png');
-        this.load.image('U', 'Assets/Letters/letterU.png');
-        this.load.image('V', 'Assets/Letters/letterV.png');
-        this.load.image('W', 'Assets/Letters/letterW.png');
-        this.load.image('X', 'Assets/Letters/letterX.png');
-        this.load.image('Y', 'Assets/Letters/letterY.png');
-        this.load.image('Z', 'Assets/Letters/letterZ.png');
-
-        this.load.image('logo', 'Assets/LetterFightLogoRounded.png');
-        this.load.image('background', 'Assets/bakgrund_asperite_3.png');
-        this.load.image('completeword', 'Assets/completeWordButton.png');
-        this.load.text('wordPoint', 'Assets/wordsSorteratPoints_newlined_101_2.txt');
-    
-    }
-
-    function create ()
-    {
-     
-        this.add.image(540, 1170, 'background');
-
-        scoreLabel = this.add.text(65, 2100, '', { font: '56px Courier', color: '#000000'});
-        scoreLabel.setText('Score: ');
-
-        totScoreText = this.add.text(65, 2160, '', { font: '56px Courier', color: '#000000'});
-        totScoreText.setText('0');
-
-        this.add.text(850, 400, 'Combo:', { font: '56px Courier', color: '#000000'});
-        comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
-
-
-        completeWord = this.add.image(540, 1950, 'completeword');
-        completeWord.setInteractive();
-
-        letterGroup = this.add.group();
-        //letterGroup.inputEnableChildren = true;
-
-        currWordGroup = this.add.group();
-
-        randomizeLetters2.call(this);
-
-        createPointMap();
-
-        keysText = this.add.text(65, 190, '', { font: '56px Courier', color: '#000000'});
-        
-        updateKeys();
-
-        this.input.on('gameobjectup', function (pointer, letter) 
-        {
-
-            if (down) 
-            {
-                down = false;
-
-                switch(letter.texture.key)
-                {
-                    case 'completeword':
-                        currLength = 0;
-                        currWordGroup.clear(true,true);
-                        completeWord.setScale(1);
-
-                        var points = parseInt(pointMap.get(currText));
-
-                        console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
-
-                        switch (currText)
-                        {
-                            case wordToShow[0]:
-
-                                completedWords[0] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
-                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-
-                                wordToShow[0] = wordToShow[0] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-
-                            case wordToShow[1]:
-
-                                completedWords[1] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
-                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-
-                                wordToShow[1] = wordToShow[1] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[2]:
-
-                                completedWords[2] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
-                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-
-                                wordToShow[2] = wordToShow[2] + '\t\tCompleted! +' + points + 'p!';
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[3]:
-                                
-                                completedWords[3] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
-                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-
-                                wordToShow[3] = wordToShow[3] + '\t\tCompleted! +' + points + 'p!';
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[4]:
-
-                                completedWords[4] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents[0].getElapsed() - 5000;
-                                timerEvents[0].reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-
-                                wordToShow[4] = wordToShow[4] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            default:
-                                console.log('kom till default case: ' + currText);
-                                console.log('bör vara annat ord än i ordlistan');
-
-                                comboNbr--;
-                                if (comboNbr < 0)
-                                {
-                                    comboNbr = 0;
-                                }
-                                comboText.setText(comboNbr);
-
-                        }
-                        if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
-                        {
-                            updateKeys();
-                            completedWords.fill(false);
-                        }
-
-                        currText = '';
-
-                        break;
-                    //case '':
-                        //bla
-                        break;
-                    default:
-                        console.log('kom till default case: ' + letter.texture.key);
-
-                        currWordGroup.create(120 + currLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();
-                
-                        currLength++;
-                        currText += letter.texture.key.toLowerCase();
-
-                }
-
-                //currLetters.fill(false);
-
-                letterGroup.clear(true,true);
-
-                randomizeLetters2.call(this);
-            }
-
-            //För att kunna byta ordning på bokstäver behöver bokstaven man släpper på vara i 
-            //"byggrutan" (currWordGroup.contains(letter))
-            if (currWordGroup.contains(letter)) 
-            {
-                console.log('släppte på annan bokstav ' + letter.texture.key);
-
-                var currIndex = Math.floor((pointer.x-60)/120);
-                
-                if (!(currIndex == heldIndex)) 
-                {
-                    comboNbr--;
-                                if (comboNbr < 0)
-                                {
-                                    comboNbr = 0;
-                                }
-                                comboText.setText(comboNbr);
-                }
-
-                console.log('släppte på bostav nr: ' + currIndex);
-                var currTextArray = new Array(currLength);
-
-                for (var i = 0; i < currLength; i++)
-                {
-                    currTextArray[i] = currText.charAt(i).toUpperCase();
-                }
-
-                console.log('heldIndex: ' + heldIndex + ', currIndex: ' + currIndex);
- 
-
-                currWordGroup.clear(true,true);
-
-                var heldPut = false;
-
-                var newCurrText = '';
-
-                var diff = heldIndex - currIndex;
-                var oldDiff = diff;
-                var lastDone = false;
-
-                for (var i = 0; i < currLength; i++)
-                {
-                    if (i < heldIndex && i < currIndex)
-                    {
-                        currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
-                        newCurrText += currTextArray[i].toLowerCase();
-                        
-                        console.log('kom till i < heldIndex || i < currIndex');
-                    } 
-                    else
-                    {
-                        if (diff != 0)
-                        {
-                            if (diff < 0) 
-                            {
-                                currWordGroup.create(120 + i*120, 960, currTextArray[i+1]).setScale(0.5).setInteractive();
-                                newCurrText += currTextArray[i+1].toLowerCase();
-                                diff++;
-
-                                console.log('kom till diff < 0');
-                            }
-                            else 
-                            {
-                                if (!lastDone)
-                                {
-                                    lastDone = true;
-                                    currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
-                                    newCurrText += currTextArray[i+oldDiff].toLowerCase();
-                                    console.log('kom till !lastdone i diff < 0');
-                                }
-                                else 
-                                {
-                                    currWordGroup.create(120 + i*120, 960, currTextArray[i-1]).setScale(0.5).setInteractive();
-                                    newCurrText += currTextArray[i-1].toLowerCase();
-                                    diff--;
-                                    console.log('kom till diff < 0');
-                                }
-                            }
-                        }
-                        else 
-                        {
-                            if (!lastDone) 
-                            {
-                                lastDone = true;
-                                currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
-                                newCurrText += currTextArray[i+oldDiff].toLowerCase();
-                                console.log('kom till !lastDone när diff = 0');
-                            }
-                            else
-                            {
-                                currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
-                                newCurrText += currTextArray[i].toLowerCase();
-                                console.log('kom till diff = 0');
-                            }
-                        }
-                    }
-                }
-
-                /* for (var i = 0; i < currLength; i++)
-                {
-                    if (i == currIndex)
-                    {
-                        currWordGroup.create(120 + i*120, 960, held).setScale(0.5).setInteractive();
-                        newCurrText += held.toLowerCase();
-                        heldPut = true;
-                    } 
-                    else
-                    {
-                        if (!heldPut)
-                        {
-                            currWordGroup.create(120 + i*120, 960, currText.charAt(i).toUpperCase()).setScale(0.5).setInteractive();
-                            newCurrText += currText.charAt(i).toLowerCase();
-                        }
-                        else 
-                        {
-                            //if ()
-
-                            currWordGroup.create(120 + i*120, 960, currText.charAt(i-1).toUpperCase()).setScale(0.5).setInteractive();
-                            newCurrText += currText.charAt(i-1).toLowerCase();
-                        }
-                    }
-                } */
-
-
-                currText = newCurrText;
-
-                held = '';
-
-            }
-
-        });
-        
-        this.input.on('gameobjectdown', function (pointer, letter) 
-        {
-            if (!currWordGroup.contains(letter))
-            {
-                letter.setScale(0.9);
-                down = true;
-            }
-            else
-            {
-                heldIndex = Math.floor((pointer.x-60)/120);
-                console.log('klickade på ord i ordbygget ' + letter.texture.key);
-                console.log('pointer x: ' + pointer.x);
-                console.log('bör vara bokstav nr: ' + Math.floor((pointer.x-60)/120));
-                console.log('pointer y: ' + pointer.y);
-            }
-        });
-
-        this.input.on('gameobjectout', function (pointer, letter) 
-        {
-            if (!currWordGroup.contains(letter))
-            {
-                letter.setScale(1);
-                down = false;
-            }
-        });
-
-        timerText = this.add.text(50, 85, 'Timer:', { font: '60px Courier', color: '#000000'});
-
-        //timeText = this.add.text(780, 140 , '', { font: '56px Courier', color: '#000000'});
-
-
-        timerEvents.push(this.time.addEvent({ delay: 30000}));
-        
-        timeGraphics = this.add.graphics({ x: 60, y: 140 });
-
-        colors = Phaser.Display.Color.HSVColorWheel();
-
-    }
-
-    function update ()
-    {
-
-        timeGraphics.clear();
-
-        var elapsedSeconds = Math.floor(30*(1-timerEvents[0].getProgress().toString().substr(0, 4)));
-
-        timerText.setText('Timer: ' + elapsedSeconds);
-
-        timeGraphics.fillStyle(colors[0].color, 1);
-        timeGraphics.fillRect(0, 0, 780*(1-timerEvents[0].getProgress()), 30);
-
-    }
-
-    
-/*     function randomizeLetters () //gammal funktion där bokstäverna var helt random
-    {
-
-        var x = 180;
-        var y = 1200;
-
-        for (var i = 0; i < 4; i++) 
-        {
-            for (var j = 0; j < 3; j++)
-            {
-                var rand;
-
-                do 
-                {
-                    rand = Phaser.Math.RND.between(0, 25);
-                } 
-                while (currLetters[rand] != false);
-
-                currLetters[rand] = true;
-                
-                letter = letterGroup.create(x + 240*i, y + 240*j, letterArray[rand]);//.setInteractive();
-                //sprite = this.add.image(x + 240*i, y + 240*j, letterArray[rand]);
-            }
-        }
-    } */
+var heldIndex;
 
     function randomizeLetters2 () //randomize depending on how common each letter is
     {
@@ -680,9 +196,530 @@
         keysText.setText(
             wordToShow[0] + '\n' + wordToShow[1] + '\n' + wordToShow[2] + '\n' + wordToShow[3] + '\n' + wordToShow[4]
         );
-
     }
 
+
+var Preloader = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function Preloader ()
+    {
+        Phaser.Scene.call(this, { key: 'preloader'});
+    },
+
+    preload: function ()
+    {
+        this.load.image('A', 'Assets/Letters/letterA.png');
+        this.load.image('B', 'Assets/Letters/letterB.png');
+        this.load.image('C', 'Assets/Letters/letterC.png');
+        this.load.image('D', 'Assets/Letters/letterD.png');
+        this.load.image('E', 'Assets/Letters/letterE.png');
+        this.load.image('F', 'Assets/Letters/letterF.png');
+        this.load.image('G', 'Assets/Letters/letterG.png');
+        this.load.image('H', 'Assets/Letters/letterH.png');
+        this.load.image('I', 'Assets/Letters/letterI.png');
+        this.load.image('J', 'Assets/Letters/letterJ.png');
+        this.load.image('K', 'Assets/Letters/letterK.png');
+        this.load.image('L', 'Assets/Letters/letterL.png');
+        this.load.image('M', 'Assets/Letters/letterM.png');
+        this.load.image('N', 'Assets/Letters/letterN.png');
+        this.load.image('O', 'Assets/Letters/letterO.png');
+        this.load.image('P', 'Assets/Letters/letterP.png');
+        this.load.image('Q', 'Assets/Letters/letterQ.png');
+        this.load.image('R', 'Assets/Letters/letterR.png');
+        this.load.image('S', 'Assets/Letters/letterS.png');
+        this.load.image('T', 'Assets/Letters/letterT.png');
+        this.load.image('U', 'Assets/Letters/letterU.png');
+        this.load.image('V', 'Assets/Letters/letterV.png');
+        this.load.image('W', 'Assets/Letters/letterW.png');
+        this.load.image('X', 'Assets/Letters/letterX.png');
+        this.load.image('Y', 'Assets/Letters/letterY.png');
+        this.load.image('Z', 'Assets/Letters/letterZ.png');
+
+        this.load.image('logo', 'Assets/LetterFightLogoRounded.png');
+        this.load.image('background', 'Assets/bakgrund_asperite_3.png');
+        this.load.image('completeword', 'Assets/completeWordButton.png');
+        this.load.text('wordPoint', 'Assets/wordsSorteratPoints_newlined_101_2.txt');
+    },
+
+    create: function ()
+    {
+        console.log('%c Preloader')
+        this.scene.start('mainmenu');
+    }
+
+});
+
+var MainMenu = new Phaser.Class({
+
+    Extends:Phaser.Scene,
+
+    initialize:
+
+    function MainMenu ()
+    {
+        Phaser.Scene.call(this, { key: 'mainmenu' });
+        window.MENU = this;
+    },
+
+    create: function ()
+    {
+        console.log('%c MainMenu ');
+
+        var mainMenuText = this.add.text(120, 1000, 'Main Menu, click to start', { font: '56px Courier', color: '#ff0000'});
+
+        var startButton = this.add.image(540, 1300, 'logo');
+
+        startButton.setInteractive();
+
+        startButton.once('pointerup', function () {
+
+            this.scene.start('game');
+
+        }, this);
+    }   
+
+});
+
+
+
+var Game = new Phaser.Class({
+    
+    Extends: Phaser.Scene,
+
+
+    initialize:
+
+    function Game ()
+    {
+        Phaser.Scene.call(this, { key: 'game' });
+        window.GAME = this;
+    },
+
+    
+
+    create: function ()
+    {
+        console.log('%c Game ');
+        
+        this.add.image(540, 1170, 'background');
+
+        scoreLabel = this.add.text(65, 2100, '', { font: '56px Courier', color: '#000000'});
+        scoreLabel.setText('Score: ');
+
+        totScoreText = this.add.text(65, 2160, '', { font: '56px Courier', color: '#000000'});
+        totScoreText.setText('0');
+
+        this.add.text(850, 400, 'Combo:', { font: '56px Courier', color: '#000000'});
+        comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
+
+
+        completeWord = this.add.image(540, 1950, 'completeword');
+        completeWord.setInteractive();
+
+        letterGroup = this.add.group();
+        //letterGroup.inputEnableChildren = true;
+
+        currWordGroup = this.add.group();
+
+        randomizeLetters2.call(this);
+
+        createPointMap();
+
+        keysText = this.add.text(65, 190, '', { font: '56px Courier', color: '#000000'});
+        
+        updateKeys();
+
+        this.input.on('gameobjectup', function (pointer, letter) 
+        {
+
+            if (down) 
+            {
+                down = false;
+
+                switch(letter.texture.key)
+                {
+                    case 'completeword':
+                        currLength = 0;
+                        currWordGroup.clear(true,true);
+                        completeWord.setScale(1);
+
+                        var points = parseInt(pointMap.get(currText));
+
+                        console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
+
+                        switch (currText)
+                        {
+                            case wordToShow[0]:
+
+                                completedWords[0] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 5000;
+                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[0] = wordToShow[0] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+
+                            case wordToShow[1]:
+
+                                completedWords[1] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 5000;
+                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[1] = wordToShow[1] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[2]:
+
+                                completedWords[2] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 5000;
+                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[2] = wordToShow[2] + '\t\tCompleted! +' + points + 'p!';
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[3]:
+                                
+                                completedWords[3] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 5000;
+                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[3] = wordToShow[3] + '\t\tCompleted! +' + points + 'p!';
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            case wordToShow[4]:
+
+                                completedWords[4] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 5000;
+                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+
+                                wordToShow[4] = wordToShow[4] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                break;
+                            default:
+                                console.log('kom till default case: ' + currText);
+                                console.log('bör vara annat ord än i ordlistan');
+
+                                comboNbr--;
+                                if (comboNbr < 0)
+                                {
+                                    comboNbr = 0;
+                                }
+                                comboText.setText(comboNbr);
+
+                        }
+                        if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
+                        {
+                            updateKeys();
+                            completedWords.fill(false);
+                            timerEvents.reset({delay: 30000, startAt: 0});
+                        }
+
+                        currText = '';
+
+                        break;
+                    //case '':
+                        //bla
+                        break;
+                    default:
+                        console.log('kom till default case: ' + letter.texture.key);
+
+                        currWordGroup.create(120 + currLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();
+                
+                        currLength++;
+                        currText += letter.texture.key.toLowerCase();
+
+                }
+
+                letterGroup.clear(true,true);
+
+                randomizeLetters2.call(this);
+            }
+
+            //För att kunna byta ordning på bokstäver behöver bokstaven man släpper på vara i 
+            //"byggrutan" (currWordGroup.contains(letter))
+            if (currWordGroup.contains(letter)) 
+            {
+                console.log('släppte på annan bokstav ' + letter.texture.key);
+
+                var currIndex = Math.floor((pointer.x-60)/120);
+                
+                if (!(currIndex == heldIndex)) 
+                {
+                    comboNbr--;
+                                if (comboNbr < 0)
+                                {
+                                    comboNbr = 0;
+                                }
+                                comboText.setText(comboNbr);
+                }
+
+                console.log('släppte på bostav nr: ' + currIndex);
+                var currTextArray = new Array(currLength);
+
+                for (var i = 0; i < currLength; i++)
+                {
+                    currTextArray[i] = currText.charAt(i).toUpperCase();
+                }
+
+                console.log('heldIndex: ' + heldIndex + ', currIndex: ' + currIndex);
+ 
+
+                currWordGroup.clear(true,true);
+
+                var heldPut = false;
+
+                var newCurrText = '';
+
+                var diff = heldIndex - currIndex;
+                var oldDiff = diff;
+                var lastDone = false;
+
+                for (var i = 0; i < currLength; i++)
+                {
+                    if (i < heldIndex && i < currIndex)
+                    {
+                        currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
+                        newCurrText += currTextArray[i].toLowerCase();
+                        
+                        console.log('kom till i < heldIndex || i < currIndex');
+                    } 
+                    else
+                    {
+                        if (diff != 0)
+                        {
+                            if (diff < 0) 
+                            {
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i+1]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i+1].toLowerCase();
+                                diff++;
+
+                                console.log('kom till diff < 0');
+                            }
+                            else 
+                            {
+                                if (!lastDone)
+                                {
+                                    lastDone = true;
+                                    currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
+                                    newCurrText += currTextArray[i+oldDiff].toLowerCase();
+                                    console.log('kom till !lastdone i diff < 0');
+                                }
+                                else 
+                                {
+                                    currWordGroup.create(120 + i*120, 960, currTextArray[i-1]).setScale(0.5).setInteractive();
+                                    newCurrText += currTextArray[i-1].toLowerCase();
+                                    diff--;
+                                    console.log('kom till diff < 0');
+                                }
+                            }
+                        }
+                        else 
+                        {
+                            if (!lastDone) 
+                            {
+                                lastDone = true;
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i+oldDiff]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i+oldDiff].toLowerCase();
+                                console.log('kom till !lastDone när diff = 0');
+                            }
+                            else
+                            {
+                                currWordGroup.create(120 + i*120, 960, currTextArray[i]).setScale(0.5).setInteractive();
+                                newCurrText += currTextArray[i].toLowerCase();
+                                console.log('kom till diff = 0');
+                            }
+                        }
+                    }
+                }
+
+                currText = newCurrText;
+
+                held = '';
+
+            }
+
+        });
+        
+        this.input.on('gameobjectdown', function (pointer, letter) 
+        {
+            if (!currWordGroup.contains(letter))
+            {
+                letter.setScale(0.9);
+                down = true;
+            }
+            else
+            {
+                heldIndex = Math.floor((pointer.x-60)/120);
+                console.log('klickade på ord i ordbygget ' + letter.texture.key);
+                console.log('pointer x: ' + pointer.x);
+                console.log('bör vara bokstav nr: ' + Math.floor((pointer.x-60)/120));
+                console.log('pointer y: ' + pointer.y);
+            }
+        });
+
+        this.input.on('gameobjectout', function (pointer, letter) 
+        {
+            if (!currWordGroup.contains(letter))
+            {
+                letter.setScale(1);
+                down = false;
+            }
+        });
+
+        timerText = this.add.text(50, 85, 'Timer:', { font: '60px Courier', color: '#000000'});
+
+        timerEvents = this.time.addEvent({ delay: 30000 });
+        
+        timeGraphics = this.add.graphics({ x: 60, y: 140 });
+
+        colors = Phaser.Display.Color.HSVColorWheel();
+    },
+
+    update: function ()
+    {
+
+        timeGraphics.clear();
+
+        var secondsLeft = Math.floor(30*(1-timerEvents.getProgress().toString().substr(0, 4)));
+
+      if (1-timerEvents.getProgress() == 0) 
+        {
+            console.log('Tid = 0, Game Over!')
+            this.scene.start('gameover');
+        }   
+
+        timerText.setText('Timer: ' + secondsLeft);
+
+        timeGraphics.fillStyle(colors[Math.floor(111*(1-timerEvents.getProgress()))].color, 1);
+        timeGraphics.fillRect(0, 0, 780*(1-timerEvents.getProgress()), 30);
+    },
+
+    
+
+});
+
+var GameOver = new Phaser.Class({
+
+    Extends: Phaser.Scene,
+
+    initialize:
+
+    function GameOver ()
+    {
+        Phaser.Scene.call(this, { key: 'gameover' });
+        window.OVER = this;
+    },
+
+    create: function ()
+    {
+        console.log('%c GameOver ');
+
+        this.add.text(100, 500, 'Game Over - Click to go back to main menu', { font: '36px Courier', fill: '#ffffff' });
+        this.add.text(100, 700, 'Final score: ' + totScore, { font: '36px Courier', fill: '#ffffff' });
+
+        var restartButton = this.add.image(540, 200, 'logo');
+
+        restartButton.setInteractive();
+
+        restartButton.once('pointerup', function () {
+
+            this.scene.start('mainmenu');
+
+        }, this);
+    }
+});
+
+var config = {
+    type: Phaser.AUTO,
+    width: 1080,
+    height: 2340,
+    backgroundColor: '#000000',
+    scene: [ Preloader, MainMenu, Game, GameOver ]
+};
+
+var game = new Phaser.Game(config);
 
 </script>
 
