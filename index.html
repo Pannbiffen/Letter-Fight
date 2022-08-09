@@ -533,6 +533,62 @@ var Game = new Phaser.Class({
                         currLength++;
                         currText += letter.texture.key.toLowerCase();
 
+                        for (var i = 0; i < wordToShow.length; i++)
+                        {
+                            if (wordToShow[i] == currText)
+                            {
+                                console.log('Ord som finns hittat');
+                                
+                                currLength = 0;
+                                currWordGroup.clear(true,true);
+                                completeWord.setScale(1);
+
+                                var points = parseInt(pointMap.get(currText));
+
+                                console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
+
+                                completedWords[i] = true;
+
+                                points += points*0.25*(comboNbr);
+                                totScore += points;
+                                totScoreText.setText(totScore);
+
+                                var elapsedTime = timerEvents.getElapsed() - 6000;
+                                timerEvents.reset({delay: 60000, startAt: elapsedTime});
+
+                                comboNbr++;
+                                comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
+
+                                wordToShow[i] = wordToShow[i] + '\t\tCompleted! +' + points + 'p!';
+
+                                keysText.setText(
+                                                    wordToShow[0] + 
+                                            '\n' + wordToShow[1] + 
+                                            '\n' + wordToShow[2] + 
+                                            '\n' + wordToShow[3] + 
+                                            '\n' + wordToShow[4]
+                                );
+
+                                currText = '';
+
+                                if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
+                                {
+                                    updateKeys();
+                                    completedWords.fill(false);
+                                    timerEvents.reset({delay: 30000, startAt: 0});
+                                }
+                            }
+                        }
+
+
+
+
+                        
+
                 }
 
                 letterGroup.clear(true,true);
@@ -641,7 +697,58 @@ var Game = new Phaser.Class({
 
                 held = '';
 
-            }
+                for (var i = 0; i < wordToShow.length; i++)
+                {
+                    if (wordToShow[i] == currText)
+                    {
+                        console.log('Ord som finns hittat');
+
+                        currLength = 0;
+                        currWordGroup.clear(true,true);
+                        completeWord.setScale(1);
+
+                        var points = parseInt(pointMap.get(currText));
+
+                        console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
+
+                        completedWords[i] = true;
+
+                        points += points*0.25*(comboNbr);
+                        totScore += points;
+                        totScoreText.setText(totScore);
+
+                        var elapsedTime = timerEvents.getElapsed() - 6000;
+                        timerEvents.reset({delay: 60000, startAt: elapsedTime});
+
+                        comboNbr++;
+                        comboText.setText(comboNbr);
+                        if (comboNbr>maxCombo)
+                        {
+                        maxCombo = comboNbr;
+                        }
+
+                        wordToShow[i] = wordToShow[i] + '\t\tCompleted! +' + points + 'p!';
+
+                        keysText.setText(
+                                        wordToShow[0] + 
+                                '\n' + wordToShow[1] + 
+                                '\n' + wordToShow[2] + 
+                                '\n' + wordToShow[3] + 
+                                '\n' + wordToShow[4]
+                        );
+
+                        currText = '';
+
+                        if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
+                        {
+                        updateKeys();
+                        completedWords.fill(false);
+                        timerEvents.reset({delay: 60000, startAt: 0});
+                        }
+                    }
+                }
+
+                }
 
         });
         
@@ -673,7 +780,7 @@ var Game = new Phaser.Class({
 
         timerText = this.add.text(50, 85, 'Timer:', { font: '60px Courier', color: '#000000'});
 
-        timerEvents = this.time.addEvent({ delay: 30000 });
+        timerEvents = this.time.addEvent({ delay: 60000, startAt: 30000 });
         
         timeGraphics = this.add.graphics({ x: 60, y: 140 });
 
@@ -685,7 +792,7 @@ var Game = new Phaser.Class({
 
         timeGraphics.clear();
 
-        var secondsLeft = Math.floor(30*(1-timerEvents.getProgress().toString().substr(0, 4)));
+        var secondsLeft = Math.floor(60*(1-timerEvents.getProgress().toString().substr(0, 4)));
 
       if (1-timerEvents.getProgress() == 0) 
         {
