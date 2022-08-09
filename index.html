@@ -18,23 +18,14 @@
 
 <script type="text/javascript">
 
-var pointMap = new Map();
+//Map with key=word and value=points, added during preloader
+var pointMap = new Map(); 
 
-var wordPointList = [];
-
-var letterGroup;
-
-var letter;
-
-var completeWord;
-
-var currText = '';
-
-var currLength = 0;
-
-var totScoreText;
-
+//Total score
 var totScore = 0;
+
+//Highest achieved combo (during one run)
+var maxCombo = 0;
 
 var allKeys;
 
@@ -62,15 +53,11 @@ var colors;
 
 var nextKeyCounter = 0;
 
-var comboText;
-
-var comboNbr = 0;
-
 var down;
 
 var heldIndex;
 
-    function randomizeLetters2 () //randomize depending on how common each letter is
+    function randomizeLetters (letterGroup) //randomize depending on how common each letter is
     {
 
         var letterMap = new Map();
@@ -121,7 +108,7 @@ var heldIndex;
                     sumVal += value;
                     if (sumVal > rand) 
                     {
-                        letter = letterGroup.create(x + 240*i, y + 240*j, key).setInteractive();
+                        letterGroup.create(x + 240*i, y + 240*j, key).setInteractive();
                         //console.log('bokstav: ' + key);
                         letterMap.delete(key);
 
@@ -133,8 +120,10 @@ var heldIndex;
         }  
     }
 
+    //Used to generate the pointMap values and keys from text document 'wordPoint'
     function createPointMap ()
     {
+        var wordPointList = [];
 
         wordPointList = game.cache.text.get('wordPoint');
 
@@ -160,8 +149,6 @@ var heldIndex;
         
         }
 
-        allKeys = pointMap.keys();
-        allKeys.next();
     }
 
     function updateKeys ()
@@ -248,6 +235,7 @@ var Preloader = new Phaser.Class({
     create: function ()
     {
         console.log('%c Preloader')
+        createPointMap();
         this.scene.start('mainmenu');
     }
 
@@ -269,7 +257,10 @@ var MainMenu = new Phaser.Class({
     {
         console.log('%c MainMenu ');
 
-        var mainMenuText = this.add.text(120, 1000, 'Main Menu, click to start', { font: '56px Courier', color: '#ff0000'});
+        this.add.text(120, 1000, 'Main Menu, click to start', { font: '56px Courier', color: '#ff0000'});
+
+        this.add.text(60, 1700, 'Instructions: \nClick on letters to add them to your current word\n\nSpell out one of the 5 words and press to complete word\n\nYou can also move the letters in your current word\n\nDont have the required letter? Press complete word to \nget new letters, this will erase your current word', { font: '28px Courier', color: '#ff0000'});
+
 
         var startButton = this.add.image(540, 1300, 'logo');
 
@@ -310,27 +301,39 @@ var Game = new Phaser.Class({
         scoreLabel = this.add.text(65, 2100, '', { font: '56px Courier', color: '#000000'});
         scoreLabel.setText('Score: ');
 
-        totScoreText = this.add.text(65, 2160, '', { font: '56px Courier', color: '#000000'});
+        //Total score as text
+        var totScoreText = this.add.text(65, 2160, '', { font: '56px Courier', color: '#000000'});
         totScoreText.setText('0');
 
         this.add.text(850, 400, 'Combo:', { font: '56px Courier', color: '#000000'});
-        comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
+        var comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
 
 
-        completeWord = this.add.image(540, 1950, 'completeword');
+        var completeWord = this.add.image(540, 1950, 'completeword');
         completeWord.setInteractive();
 
-        letterGroup = this.add.group();
-        //letterGroup.inputEnableChildren = true;
+        //Group of the 12 current (random) letters available
+        var letterGroup = this.add.group();
+
+        //The current word being built
+        var currText = '';
+
+        //The current length of the word being built
+        var currLength = 0;
+
+        //The current combo multiplier
+        var comboNbr = 0;
+
 
         currWordGroup = this.add.group();
 
-        randomizeLetters2.call(this);
-
-        createPointMap();
+        randomizeLetters(letterGroup);
 
         keysText = this.add.text(65, 190, '', { font: '56px Courier', color: '#000000'});
         
+        allKeys = pointMap.keys();
+        allKeys.next();
+
         updateKeys();
 
         this.input.on('gameobjectup', function (pointer, letter) 
@@ -366,6 +369,10 @@ var Game = new Phaser.Class({
 
                                 comboNbr++;
                                 comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
 
                                 wordToShow[0] = wordToShow[0] + '\t\tCompleted! +' + points + 'p!';
 
@@ -392,6 +399,10 @@ var Game = new Phaser.Class({
 
                                 comboNbr++;
                                 comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
 
                                 wordToShow[1] = wordToShow[1] + '\t\tCompleted! +' + points + 'p!';
 
@@ -417,6 +428,10 @@ var Game = new Phaser.Class({
 
                                 comboNbr++;
                                 comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
 
                                 wordToShow[2] = wordToShow[2] + '\t\tCompleted! +' + points + 'p!';
                                 keysText.setText(
@@ -441,6 +456,10 @@ var Game = new Phaser.Class({
 
                                 comboNbr++;
                                 comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
 
                                 wordToShow[3] = wordToShow[3] + '\t\tCompleted! +' + points + 'p!';
                                 keysText.setText(
@@ -465,6 +484,10 @@ var Game = new Phaser.Class({
 
                                 comboNbr++;
                                 comboText.setText(comboNbr);
+                                if (comboNbr>maxCombo)
+                                {
+                                    maxCombo = comboNbr;
+                                }
 
                                 wordToShow[4] = wordToShow[4] + '\t\tCompleted! +' + points + 'p!';
 
@@ -514,7 +537,7 @@ var Game = new Phaser.Class({
 
                 letterGroup.clear(true,true);
 
-                randomizeLetters2.call(this);
+                randomizeLetters(letterGroup);
             }
 
             //För att kunna byta ordning på bokstäver behöver bokstaven man släpper på vara i 
@@ -528,11 +551,11 @@ var Game = new Phaser.Class({
                 if (!(currIndex == heldIndex)) 
                 {
                     comboNbr--;
-                                if (comboNbr < 0)
-                                {
-                                    comboNbr = 0;
-                                }
-                                comboText.setText(comboNbr);
+                    if (comboNbr < 0)
+                    {
+                        comboNbr = 0;
+                    }
+                    comboText.setText(comboNbr);
                 }
 
                 console.log('släppte på bostav nr: ' + currIndex);
@@ -698,12 +721,17 @@ var GameOver = new Phaser.Class({
 
         this.add.text(100, 500, 'Game Over - Click to go back to main menu', { font: '36px Courier', fill: '#ffffff' });
         this.add.text(100, 700, 'Final score: ' + totScore, { font: '36px Courier', fill: '#ffffff' });
+        this.add.text(100, 750, 'Highest combo: ' + maxCombo, { font: '36px Courier', fill: '#ffffff' });
 
         var restartButton = this.add.image(540, 200, 'logo');
 
         restartButton.setInteractive();
 
         restartButton.once('pointerup', function () {
+
+            totScore = 0;
+            maxCombo = 0;
+            completedWords.fill(false);
 
             this.scene.start('mainmenu');
 
