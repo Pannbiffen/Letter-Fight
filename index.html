@@ -3,7 +3,7 @@
 <head> 
     <meta charset="UTF-8" />
     <title>LetterFight</title>
-    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -56,6 +56,18 @@ var nextKeyCounter = 0;
 var down;
 
 var heldIndex;
+
+var floatTrue = false;
+
+var floatingWordGroup;
+
+var alphaVal;
+
+var path;
+
+var follower;
+
+var graphics;
 
     function randomizeLetters (letterGroup) //randomize depending on how common each letter is
     {
@@ -326,6 +338,8 @@ var Game = new Phaser.Class({
 
 
         currWordGroup = this.add.group();
+        floatingWordGroup = this.add.group();
+        follower = this.add.group();
 
         randomizeLetters(letterGroup);
 
@@ -350,174 +364,15 @@ var Game = new Phaser.Class({
                         currWordGroup.clear(true,true);
                         completeWord.setScale(1);
 
-                        var points = parseInt(pointMap.get(currText));
+                        console.log('Erase word and reroll');
 
-                        console.log("skrev: " + currText + ', värt: ' + points + ' poäng!');
-
-                        switch (currText)
+                        comboNbr--;
+                        if (comboNbr < 0)
                         {
-                            case wordToShow[0]:
-
-                                completedWords[0] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents.getElapsed() - 5000;
-                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-                                if (comboNbr>maxCombo)
-                                {
-                                    maxCombo = comboNbr;
-                                }
-
-                                wordToShow[0] = wordToShow[0] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-
-                            case wordToShow[1]:
-
-                                completedWords[1] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents.getElapsed() - 5000;
-                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-                                if (comboNbr>maxCombo)
-                                {
-                                    maxCombo = comboNbr;
-                                }
-
-                                wordToShow[1] = wordToShow[1] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[2]:
-
-                                completedWords[2] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents.getElapsed() - 5000;
-                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-                                if (comboNbr>maxCombo)
-                                {
-                                    maxCombo = comboNbr;
-                                }
-
-                                wordToShow[2] = wordToShow[2] + '\t\tCompleted! +' + points + 'p!';
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[3]:
-                                
-                                completedWords[3] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents.getElapsed() - 5000;
-                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-                                if (comboNbr>maxCombo)
-                                {
-                                    maxCombo = comboNbr;
-                                }
-
-                                wordToShow[3] = wordToShow[3] + '\t\tCompleted! +' + points + 'p!';
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            case wordToShow[4]:
-
-                                completedWords[4] = true;
-
-                                points += points*0.25*(comboNbr);
-                                totScore += points;
-                                totScoreText.setText(totScore);
-
-                                var elapsedTime = timerEvents.getElapsed() - 5000;
-                                timerEvents.reset({delay: 30000, startAt: elapsedTime});
-
-                                comboNbr++;
-                                comboText.setText(comboNbr);
-                                if (comboNbr>maxCombo)
-                                {
-                                    maxCombo = comboNbr;
-                                }
-
-                                wordToShow[4] = wordToShow[4] + '\t\tCompleted! +' + points + 'p!';
-
-                                keysText.setText(
-                                                    wordToShow[0] + 
-                                            '\n' + wordToShow[1] + 
-                                            '\n' + wordToShow[2] + 
-                                            '\n' + wordToShow[3] + 
-                                            '\n' + wordToShow[4]
-                                );
-
-                                break;
-                            default:
-                                console.log('kom till default case: ' + currText);
-                                console.log('bör vara annat ord än i ordlistan');
-
-                                comboNbr--;
-                                if (comboNbr < 0)
-                                {
-                                    comboNbr = 0;
-                                }
-                                comboText.setText(comboNbr);
-
+                            comboNbr = 0;
                         }
-                        if (completedWords[0] && completedWords[1] && completedWords[2] && completedWords[3] && completedWords[4])
-                        {
-                            updateKeys();
-                            completedWords.fill(false);
-                            timerEvents.reset({delay: 30000, startAt: 0});
-                        }
+
+                        comboText.setText(comboNbr);
 
                         currText = '';
 
@@ -533,11 +388,32 @@ var Game = new Phaser.Class({
                         currLength++;
                         currText += letter.texture.key.toLowerCase();
 
+
+                        //Animations
+
+/* 
+                        var xStart = b; 
+
+                        var yStart =
+
+                        follower.create(x,y,letter.texture.key)
+
+ */
                         for (var i = 0; i < wordToShow.length; i++)
                         {
                             if (wordToShow[i] == currText)
                             {
                                 console.log('Ord som finns hittat');
+
+                                alphaVal = 200;
+
+                                for (var j = 0; j < currLength; j++)
+                                {
+                                    floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+                                    //floatingWordGroup[j] = 
+                                    //var p = this.add.image(120 + j*120, 960, currText.charAt(j).toUpperCase());
+                                    floatTrue = true;
+                                }
                                 
                                 currLength = 0;
                                 currWordGroup.clear(true,true);
@@ -579,7 +455,8 @@ var Game = new Phaser.Class({
                                 {
                                     updateKeys();
                                     completedWords.fill(false);
-                                    timerEvents.reset({delay: 30000, startAt: 0});
+                                    var elapsedTime = timerEvents.getElapsed() - 30000;
+                                    timerEvents.reset({delay: 60000, startAt: elapsedTime});
                                 }
                             }
                         }
@@ -703,6 +580,14 @@ var Game = new Phaser.Class({
                     {
                         console.log('Ord som finns hittat');
 
+                        alphaVal = 200;
+
+                                for (var j = 0; j < currLength; j++)
+                                {
+                                    floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+                                    floatTrue = true;
+                                }
+
                         currLength = 0;
                         currWordGroup.clear(true,true);
                         completeWord.setScale(1);
@@ -743,7 +628,8 @@ var Game = new Phaser.Class({
                         {
                         updateKeys();
                         completedWords.fill(false);
-                        timerEvents.reset({delay: 60000, startAt: 0});
+                        var elapsedTime = timerEvents.getElapsed() - 30000;
+                        timerEvents.reset({delay: 60000, startAt: elapsedTime});
                         }
                     }
                 }
@@ -789,6 +675,26 @@ var Game = new Phaser.Class({
 
     update: function ()
     {
+
+
+
+        if (floatingWordGroup.getLength() != 0)
+        {
+            if (floatTrue) 
+            {
+                floatingWordGroup.incY(-1);
+                alphaVal--;
+                floatingWordGroup.setAlpha(alphaVal/200);
+                
+            }
+
+             if (floatingWordGroup.getChildren()[0].y < 600) 
+            {
+                floatingWordGroup.clear(true,true);
+                floatTrue = false;
+            } 
+        }
+ 
 
         timeGraphics.clear();
 
