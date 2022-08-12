@@ -197,7 +197,6 @@ var graphics;
         );
     }
 
-
 var Preloader = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -350,6 +349,7 @@ var Game = new Phaser.Class({
 
         updateKeys();
 
+
         this.input.on('gameobjectup', function (pointer, letter) 
         {
 
@@ -383,7 +383,7 @@ var Game = new Phaser.Class({
                     default:
                         console.log('kom till default case: ' + letter.texture.key);
 
-                        currWordGroup.create(120 + currLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();
+                        //currWordGroup.create(120 + currLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();
                 
                         currLength++;
                         currText += letter.texture.key.toLowerCase();
@@ -391,14 +391,31 @@ var Game = new Phaser.Class({
 
                         //Animations
 
-/* 
-                        var xStart = b; 
+                        var xStart = Math.floor((pointer.x-60)/240)*240+180; 
+                        console.log('xStart= ' + xStart);
 
-                        var yStart =
+                        var yStart = Math.floor((pointer.y-1080)/240)*240+1200;
+                        console.log('yStart= ' + yStart);
 
-                        follower.create(x,y,letter.texture.key)
+                        var xGoal = currLength*120;
 
- */
+                        var yGoal = 960;
+
+                        var flyingLetter = this.add.image(xStart, yStart, letter.texture.key);
+
+                        var thisLength = currLength;
+
+                        this.tweens.add({
+                            targets: flyingLetter,
+                            scale: 0.5,
+                            x: xGoal,
+                            y: yGoal,
+                            duration: 300,
+                            ease: 'Power2',
+                            onComplete: ()=>{flyingLetter.destroy();
+                                currWordGroup.create(thisLength*120, 960, letter.texture.key).setScale(0.5).setInteractive();},
+                        });
+
                         for (var i = 0; i < wordToShow.length; i++)
                         {
                             if (wordToShow[i] == currText)
@@ -407,16 +424,28 @@ var Game = new Phaser.Class({
 
                                 alphaVal = 200;
 
+                                var floatingWordArray = [currLength];
+
                                 for (var j = 0; j < currLength; j++)
                                 {
-                                    floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
-                                    //floatingWordGroup[j] = 
-                                    //var p = this.add.image(120 + j*120, 960, currText.charAt(j).toUpperCase());
-                                    floatTrue = true;
+                                    //floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+                                    //floatTrue = true;
+                                    floatingWordArray[j] = this.add.image(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+
                                 }
+
+                                this.tweens.add({
+                                    targets: floatingWordArray,
+                                    delay:310,
+                                    alpha: {start: 0, from: 1, to: 0},
+                                    y: 700,
+                                    duration: 2000,
+                                    ease: 'Power2',
+                                    onStart: ()=>{currLength = 0;
+                                        currWordGroup.clear(true,true);},                                 
+                                });
                                 
-                                currLength = 0;
-                                currWordGroup.clear(true,true);
+
                                 completeWord.setScale(1);
 
                                 var points = parseInt(pointMap.get(currText));
@@ -581,15 +610,36 @@ var Game = new Phaser.Class({
                         console.log('Ord som finns hittat');
 
                         alphaVal = 200;
+/* 
+                        for (var j = 0; j < currLength; j++)
+                        {
+                            floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+                            floatTrue = true;
+                        } */
 
-                                for (var j = 0; j < currLength; j++)
-                                {
-                                    floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
-                                    floatTrue = true;
-                                }
+                        var floatingWordArray = [currLength];
 
+                        for (var j = 0; j < currLength; j++)
+                        {
+                            //floatingWordGroup.create(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+                            //floatTrue = true;
+                            floatingWordArray[j] = this.add.image(120 + j*120, 960, currText.charAt(j).toUpperCase()).setScale(0.5);
+
+                        }
+
+                        this.tweens.add({
+                            targets: floatingWordArray,
+                            delay:0,
+                            alpha: {start: 1, from: 1, to: 0},
+                            y: 700,
+                            duration: 2000,
+                            ease: 'Power2',
+                            onStart: ()=>{currLength = 0;
+                                currWordGroup.clear(true,true);},                                 
+                        });
+/* 
                         currLength = 0;
-                        currWordGroup.clear(true,true);
+                        currWordGroup.clear(true,true); */
                         completeWord.setScale(1);
 
                         var points = parseInt(pointMap.get(currText));
@@ -636,7 +686,7 @@ var Game = new Phaser.Class({
 
                 }
 
-        });
+        }, this);
         
         this.input.on('gameobjectdown', function (pointer, letter) 
         {
@@ -676,6 +726,10 @@ var Game = new Phaser.Class({
     update: function ()
     {
 
+/*         if (follower.getLength() != 0)
+        {
+
+        }
 
 
         if (floatingWordGroup.getLength() != 0)
@@ -688,12 +742,12 @@ var Game = new Phaser.Class({
                 
             }
 
-             if (floatingWordGroup.getChildren()[0].y < 600) 
+             if (floatingWordGroup.getChildren()[floatingWordGroup.getLength()-1].y < 600) 
             {
                 floatingWordGroup.clear(true,true);
                 floatTrue = false;
             } 
-        }
+        } */
  
 
         timeGraphics.clear();
