@@ -12,10 +12,6 @@
 </head>
 <body>
 
-    
-
-
-
 <script type="text/javascript">
 
 //Map with key=word and value=points, added during preloader
@@ -197,6 +193,49 @@ var graphics;
         );
     }
 
+    function updateKeysInitial (keysGroup)
+    {
+
+        wordToShow = [];
+
+        var range = 20 + totScore/50;
+
+        for (var i = 0 ; i < 5; i++) 
+        {
+            var cnt = 0;
+            for (var j = 0; j < Phaser.Math.RND.between(1,range); j++ )
+            {   
+
+                var key = allKeys.next().value;
+                nextKeyCounter++;
+                cnt++;
+                console.log('cnt: ' + cnt + ' Bokstavsnummer: ' + i + ' ord: ' + key);
+                wordToShow[i] = key;
+                
+            }
+
+            for (var l = 0; l < key.length; l++)
+            {
+                keysGroup.create(120 + 120*l, 240 + 120*i, key.charAt(l).toUpperCase()).setScale(0.5);
+            }
+
+            while (nextKeyCounter < range*updateIndex)
+            {
+                allKeys.next().value;
+                nextKeyCounter++;
+            }
+
+            updateIndex++;
+        }
+
+
+    }
+
+    function updateSingleKey ()
+    {
+
+    }
+
 var Preloader = new Phaser.Class({
 
     Extends: Phaser.Scene,
@@ -240,6 +279,9 @@ var Preloader = new Phaser.Class({
         this.load.image('logo', 'Assets/LetterFightLogoRounded.png');
         this.load.image('background', 'Assets/bakgrund_asperite_3.png');
         this.load.image('completeword', 'Assets/completeWordButton.png');
+        this.load.image('erase', 'Assets/EraseWord.png');
+        this.load.image('refresh', 'Assets/Refresh.png');
+
         this.load.text('wordPoint', 'Assets/wordsSorteratPoints_newlined_101_2.txt');
     },
 
@@ -268,10 +310,9 @@ var MainMenu = new Phaser.Class({
     {
         console.log('%c MainMenu ');
 
-        this.add.text(120, 1000, 'Main Menu, click to start', { font: '56px Courier', color: '#ff0000'});
+        this.add.text(120, 1000, 'Main Menu, click\n"Letter Fight" to start', { font: '56px Courier', color: '#ff0000'});
 
-        this.add.text(60, 1700, 'Instructions: \nClick on letters to add them to your current word\n\nSpell out one of the 5 words and press to complete word\n\nYou can also move the letters in your current word\n\nDont have the required letter? Press complete word to \nget new letters, this will erase your current word', { font: '28px Courier', color: '#ff0000'});
-
+        this.add.text(60, 1700, 'Instructions: \nClick on letters to add them to your current word\n\nSpell out one of the 5 words\n\nYou can also move the letters in your current word\n\nPress Refresh to get new letters, costs 2 combo\n\nPress Erase word to erase your current word, costs 1 combo', { font: '28px Courier', color: '#ff0000'});
 
         var startButton = this.add.image(540, 1300, 'logo');
 
@@ -282,6 +323,7 @@ var MainMenu = new Phaser.Class({
             this.scene.start('game');
 
         }, this);
+
     }   
 
 });
@@ -319,9 +361,11 @@ var Game = new Phaser.Class({
         this.add.text(850, 400, 'Combo:', { font: '56px Courier', color: '#000000'});
         var comboText = this.add.text(925, 490, '0', { font: '72px Courier', color: '#000000'});
 
+        var eraseWord = this.add.image(300, 1950, 'erase');
+        eraseWord.setInteractive();
 
-        var completeWord = this.add.image(540, 1950, 'completeword');
-        completeWord.setInteractive();
+        var refreshButton = this.add.image(780, 1950, 'refresh');
+        refreshButton.setInteractive();
 
         //Group of the 12 current (random) letters available
         var letterGroup = this.add.group();
@@ -335,10 +379,15 @@ var Game = new Phaser.Class({
         //The current combo multiplier
         var comboNbr = 0;
 
+        var noSwitches = true;
+
 
         currWordGroup = this.add.group();
         floatingWordGroup = this.add.group();
         follower = this.add.group();
+
+
+
 
         randomizeLetters(letterGroup);
 
@@ -347,7 +396,12 @@ var Game = new Phaser.Class({
         allKeys = pointMap.keys();
         allKeys.next();
 
+        var keysGroup = this.add.group();
+
         updateKeys();
+
+        //Nytt sätt att visa orden som ska skrivas, ej klart
+        //updateKeysInitial(keysGroup);
 
 
         this.input.on('gameobjectup', function (pointer, letter) 
@@ -359,10 +413,10 @@ var Game = new Phaser.Class({
 
                 switch(letter.texture.key)
                 {
-                    case 'completeword':
+                    case 'erase':
                         currLength = 0;
                         currWordGroup.clear(true,true);
-                        completeWord.setScale(1);
+                        eraseWord.setAlpha(1);
 
                         console.log('Erase word and reroll');
 
@@ -377,8 +431,18 @@ var Game = new Phaser.Class({
                         currText = '';
 
                         break;
-                    //case '':
-                        //bla
+                    case 'refresh':
+                        refreshButton.setAlpha(1);
+
+                        console.log('Refresh letters, cost 2 combo points');
+
+                        comboNbr = comboNbr - 2;
+                        if (comboNbr < 0) 
+                        {
+                            comboNbr = 0;
+                        }
+                        comboText.setText(comboNbr);
+
                         break;
                     default:
                         console.log('kom till default case: ' + letter.texture.key);
@@ -410,6 +474,7 @@ var Game = new Phaser.Class({
                             scale: 0.5,
                             x: xGoal,
                             y: yGoal,
+                            alpha: {from: 0.5, to: 1},
                             duration: 300,
                             ease: 'Power2',
                             onComplete: ()=>{flyingLetter.destroy();
@@ -446,7 +511,7 @@ var Game = new Phaser.Class({
                                 });
                                 
 
-                                completeWord.setScale(1);
+                                //completeWord.setScale(1);
 
                                 var points = parseInt(pointMap.get(currText));
 
@@ -461,12 +526,20 @@ var Game = new Phaser.Class({
                                 var elapsedTime = timerEvents.getElapsed() - 6000;
                                 timerEvents.reset({delay: 60000, startAt: elapsedTime});
 
-                                comboNbr++;
+                                if (noSwitches)
+                                {
+                                    comboNbr = comboNbr + 2;
+                                } 
+                                else 
+                                {
+                                    comboNbr++;
+                                }
                                 comboText.setText(comboNbr);
                                 if (comboNbr>maxCombo)
                                 {
                                     maxCombo = comboNbr;
                                 }
+                                noSwitches = true;
 
                                 wordToShow[i] = wordToShow[i] + '\t\tCompleted! +' + points + 'p!';
 
@@ -484,7 +557,7 @@ var Game = new Phaser.Class({
                                 {
                                     updateKeys();
                                     completedWords.fill(false);
-                                    var elapsedTime = timerEvents.getElapsed() - 30000;
+                                    var elapsedTime = timerEvents.getElapsed() - 24000;
                                     timerEvents.reset({delay: 60000, startAt: elapsedTime});
                                 }
                             }
@@ -506,19 +579,12 @@ var Game = new Phaser.Class({
             //"byggrutan" (currWordGroup.contains(letter))
             if (currWordGroup.contains(letter)) 
             {
+
+                noSwitches = false;
+
                 console.log('släppte på annan bokstav ' + letter.texture.key);
 
                 var currIndex = Math.floor((pointer.x-60)/120);
-                
-                if (!(currIndex == heldIndex)) 
-                {
-                    comboNbr--;
-                    if (comboNbr < 0)
-                    {
-                        comboNbr = 0;
-                    }
-                    comboText.setText(comboNbr);
-                }
 
                 console.log('släppte på bostav nr: ' + currIndex);
                 var currTextArray = new Array(currLength);
@@ -609,6 +675,8 @@ var Game = new Phaser.Class({
                     {
                         console.log('Ord som finns hittat');
 
+                        noSwitches = true;
+
                         alphaVal = 200;
 /* 
                         for (var j = 0; j < currLength; j++)
@@ -637,10 +705,6 @@ var Game = new Phaser.Class({
                             onStart: ()=>{currLength = 0;
                                 currWordGroup.clear(true,true);},                                 
                         });
-/* 
-                        currLength = 0;
-                        currWordGroup.clear(true,true); */
-                        completeWord.setScale(1);
 
                         var points = parseInt(pointMap.get(currText));
 
@@ -692,7 +756,8 @@ var Game = new Phaser.Class({
         {
             if (!currWordGroup.contains(letter))
             {
-                letter.setScale(0.9);
+                //letter.setScale(0.9);
+                letter.setAlpha(0.5);
                 down = true;
             }
             else
@@ -709,7 +774,8 @@ var Game = new Phaser.Class({
         {
             if (!currWordGroup.contains(letter))
             {
-                letter.setScale(1);
+                //letter.setScale(1);
+                letter.setAlpha(1);
                 down = false;
             }
         });
@@ -725,45 +791,31 @@ var Game = new Phaser.Class({
 
     update: function ()
     {
+        timeGraphics.clear();
 
-/*         if (follower.getLength() != 0)
+        if (timerEvents.getProgress() < 0)
         {
-
+            var len = 780;
+            var secondsLeft = '60+';
+        }
+        else
+        {
+            var len = 780*(1-timerEvents.getProgress());
+            var secondsLeft = Math.floor(60*(1-timerEvents.getProgress().toString().substr(0, 4)));
         }
 
 
-        if (floatingWordGroup.getLength() != 0)
-        {
-            if (floatTrue) 
-            {
-                floatingWordGroup.incY(-1);
-                alphaVal--;
-                floatingWordGroup.setAlpha(alphaVal/200);
-                
-            }
-
-             if (floatingWordGroup.getChildren()[floatingWordGroup.getLength()-1].y < 600) 
-            {
-                floatingWordGroup.clear(true,true);
-                floatTrue = false;
-            } 
-        } */
- 
-
-        timeGraphics.clear();
-
-        var secondsLeft = Math.floor(60*(1-timerEvents.getProgress().toString().substr(0, 4)));
-
-      if (1-timerEvents.getProgress() == 0) 
+        if (1-timerEvents.getProgress() == 0) 
         {
             console.log('Tid = 0, Game Over!')
             this.scene.start('gameover');
-        }   
+        }
 
         timerText.setText('Timer: ' + secondsLeft);
 
         timeGraphics.fillStyle(colors[Math.floor(111*(1-timerEvents.getProgress()))].color, 1);
-        timeGraphics.fillRect(0, 0, 780*(1-timerEvents.getProgress()), 30);
+       
+        timeGraphics.fillRect(0, 0, len, 30);
     },
 
     
